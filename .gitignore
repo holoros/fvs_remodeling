@@ -1,0 +1,44 @@
+# R
+.Rhistory
+.RData
+.Rproj.user
+*.Rproj
+
+# R output and intermediate files
+*.RData
+*.rds
+*.csv.gz
+*.rda
+
+# Cache
+**/__pycache__/
+.Rcache/
+
+# Packrat / renv
+packrat/lib*/
+packrat/src/
+renv/library/
+renv/sandbox/
+
+# Large data directories (keep data on Cardinal, not in git)
+data/raw/
+data/processed/
+output/
+results/
+figures/*.pdf
+figures/*.png
+figures/*.tiff
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+desktop.ini
+
+# Logs
+logs/
+slurm-*.out
+slurm-*.err
