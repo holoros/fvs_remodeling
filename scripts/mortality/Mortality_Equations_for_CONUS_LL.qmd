@@ -1,0 +1,447 @@
+---
+title: "Mortality Equations for CONUS: Loblolly Pine"
+author: "Greg Johnson, David Marshall, Aaron Weiskittel"
+date: today
+format: pdf
+editor: visual
+fig-format: png
+---
+
+```{r}
+#| label: prepare_data
+#| message: false
+#| warning: false
+#| include: false
+
+library( dplyr )
+library( ggplot2 )
+library(tidyverse)
+library(sf)
+library(terra)
+
+
+reformat_nls <- function( nls_model_summary )
+{
+    mat_model <- nls_model_summary$coefficients
+    
+    dg_model <- as.data.frame(mat_model)
+    colnames(dg_model) <- c("Coef.", "Std. error", "t-stat.", "p")
+    
+    return( dg_model )
+}
+
+data_path <- "F:/Projects/FVS Remodel/data/"
+rds_path <- "F:/Projects/FVS Remodel/fvs_remodeling/rds/"
+gis_path <- "F:/Projects/FVS Remodel/gis/"
+unzip_path <- "F:/Projects/FVS Remodel/gis/Normal_1991_2020_bioclim"
+
+species <- readRDS( file=paste0(rds_path,"species.RDS") )
+trees <- readRDS( file=paste0(rds_path,"tree_mort_subset.RDS") ) 
+
+# observation threshold
+min_obs <- 5000
+
+fia_species <- 131
+species_name <- species$CommonName[species$SPCD == fia_species]
+tree_subset <- trees |> 
+                  filter( SPCD == fia_species & 
+                          !is.na(startCR) & !is.na(endHT) ) |>
+               mutate( endCR=ifelse(is.na(endCR), startCR, endCR ) )
+
+```
+
+## Data
+
+We took the FIA mortality data subset for `r species_name`, filtered out stray (likely keypunch errors) states, and FIA plot locations with missing EPA L3 Codes. This left `r nrow(tree_subset)` observations.
+
+The observations are distributed among states as follows:
+
+```{r}
+#| label: state_observations
+#| echo: false
+#| message: false
+#| warning: false
+
+knitr::kable( tree_subset |> group_by( State ) |> summarize( n = length(X) ) |> arrange(desc(n)) )
+
+```
+
+We computed the fraction of trees dying over a 5-year period (the interval with the most observations) for classes of explanatory variables. The graphs of mean mortality are below:
+
+```{r}
+#| label: mortality trends
+#| echo: false
+#| message: false
+#| warning: false
+
+tree_subset |> mutate( dbh_class = as.integer(startDIA+0.5), periods=as.factor(endGROWYR-startGROWYR) ) |>
+  filter( periods == 5 ) |>
+  group_by( periods, dbh_class ) |>
+  summarize( pct_mortality = mean( died ) ) |>
+  ggplot( aes( dbh_class, pct_mortality ) ) +
+  geom_point() +
+  geom_smooth() +
+  ylim( c(0, 1) ) +
+  xlab( "DBH (inches)" ) + ylab( "Mortality" ) + 
+  ggtitle( "Mortality over 5-Year Period", subtitle=species_name )
+
+tree_subset |> mutate( ht_class = as.integer(startHT/startDIA*10+0.5)/10, periods=as.factor(endGROWYR-startGROWYR) ) |>
+  filter( periods == 5 ) |>
+  group_by( periods, ht_class ) |>
+  summarize( pct_mortality = mean( died ) ) |>
+  ggplot( aes( ht_class, pct_mortality ) ) +
+  geom_point() +
+  geom_smooth() +
+  ylim( c(0, 1) ) +
+  xlab( "Height / DBH (feet/inches)" ) + ylab( "Mortality" ) + 
+  ggtitle( "Mortality over 5-Year Period", subtitle=species_name )
+
+tree_subset |> mutate( ht_class = as.integer(startHT*startCR/startDIA*10+0.5)/10, periods=as.factor(endGROWYR-startGROWYR) ) |>
+  filter( periods == 5 ) |>
+  group_by( periods, ht_class ) |>
+  summarize( pct_mortality = mean( died ) ) |>
+  ggplot( aes( ht_class, pct_mortality ) ) +
+  geom_point() +
+  geom_smooth() +
+  ylim( c(0, 1) ) +
+  xlab( "Crown Length / DBH (feet/inches)" ) + ylab( "Mortality" ) + 
+  ggtitle( "Mortality over 5-Year Period", subtitle=species_name )
+
+
+tree_subset |> mutate( ht_class = as.integer(startHT/5+0.5)*5, periods=as.factor(endGROWYR-startGROWYR) ) |>
+  filter( periods == 5 ) |>
+  group_by( periods, ht_class ) |>
+  summarize( pct_mortality = mean( died ) ) |>
+  ggplot( aes( ht_class, pct_mortality ) ) +
+  geom_point() +
+  geom_smooth() +
+  ylim( c(0, 1) ) +
+  xlab( "Height (feet)" ) + ylab( "Mortality" ) + 
+  ggtitle( "Mortality over 5-Year Period", subtitle=species_name )
+
+
+tree_subset |> mutate( cl_class = as.integer(startCR*startHT/5+0.5)*5, periods=as.factor(endGROWYR-startGROWYR) ) |>
+  filter( periods == 5 ) |>
+  group_by( periods, cl_class ) |>
+  summarize( pct_mortality = mean( died ), n=length(died) ) |>
+  ggplot( aes( cl_class, pct_mortality ) ) +
+  geom_point() +
+  geom_smooth() +
+  ylim( c(0, 1) ) +
+  xlab( "Crown Length (feet)" ) + ylab( "Mortality" ) + 
+  ggtitle( "Mortality over 5-Year Period", subtitle=species_name )
+
+tree_subset |> mutate( cr_class = as.integer(startCR*40+0.5)/40 , periods=as.factor(endGROWYR-startGROWYR) ) |>
+  filter( periods == 5 ) |>
+  group_by( cr_class ) |>
+  summarize( pct_mortality = mean( died ) ) |>
+  ggplot( aes( cr_class, pct_mortality ) ) +
+  geom_point() +
+  geom_smooth() +
+  ylim( c(0, 1) ) +
+  xlab( "Crown Ratio (fraction of total height)" ) + ylab( "Mortality" ) + 
+  ggtitle( "Mortality over 5-Year Period", subtitle=species_name)
+
+tree_subset |> mutate( bal_class = as.integer(startBAL/10+0.5)*10, periods=as.factor(endGROWYR-startGROWYR) ) |>
+  filter( periods == 5 ) |>
+  group_by( bal_class ) |>
+  summarize( pct_mortality = mean( died ) ) |>
+  ggplot( aes( bal_class, pct_mortality ) ) +
+  geom_point() +
+  geom_smooth() +
+  ylim( c(0, 1) ) +
+  xlab( "Basal Area in Larger Trees (feet^2/acre)" ) + ylab( "Mortality" ) + 
+  ggtitle( "Mortality over 5-Year Period", subtitle=species_name)
+
+tree_subset |> mutate( ccfl_class = as.integer(startCCFL/10+0.5)*10, periods=as.factor(endGROWYR-startGROWYR) ) |>
+  filter( periods == 5 ) |>
+  group_by( ccfl_class ) |>
+  summarize( pct_mortality = mean( died ) ) |>
+  ggplot( aes( ccfl_class, pct_mortality ) ) +
+  geom_point() +
+  geom_smooth() +
+  ylim( c(0, 1) ) +
+  xlab( "Crown Competition Factor in Larger Trees (feet^2/acre)" ) + ylab( "Mortality" ) + 
+  ggtitle( "Mortality over 5-Year Period", subtitle=species_name)
+
+tree_subset |> mutate( cch_class = as.integer(startCCH*10+0.5)/10, periods=as.factor(endGROWYR-startGROWYR) ) |>
+  filter( periods == 5 ) |>
+  group_by( cch_class ) |>
+  summarize( pct_mortality = mean( died ) ) |>
+  ggplot( aes( cch_class, pct_mortality ) ) +
+  geom_point() +
+  geom_smooth() +
+  ylim( c(0, 1) ) + 
+  xlab( "Crown Closure at Tree Tip (fraction of acre)" ) + ylab( "Mortality" ) + 
+  ggtitle( "Mortality over 5-Year Period", subtitle=species_name)
+
+```
+## Mortality Equation
+
+We use the Gompit equation form and minimization of the negative log-likelihood to estimate the parameters.
+
+$$P_{survival} = 1 - e^{(-e^{(\beta_1 + \beta_2 e^{(\beta_3 (cr+0.01)^{\beta_6} ht / dbh + \beta_4 (dbh+1)^{\beta_5})})})}$$ {#eq-survival}
+
+where:
+
+* $\beta_1 - \beta_6$ are parameters to be estimated,
+* $cr$ : crown ratio (fraction of total height),
+* $ht$ : total height (feet),
+* $dbh$ : diameter at breast height (inches).
+
+```{r}
+#| label: survival_equation
+#| message: false
+#| warning: false
+#| include: false
+
+survival <- function( b, periods, startDIA, endDIA,
+                      startHT, endHT, startCR, endCR, startCCH, endCCH, startCCFL, endCCFL, startBAL, endBAL ) 
+{
+  cdbh <- startDIA
+  ddbh <- (endDIA - startDIA) / periods
+  ccr <- startCR
+  dcr <- (endCR - startCR) / periods
+  ccch <- startCCH
+  dcch <- (endCCH - startCCH) / periods
+  cht <- startHT
+  dht <- (endHT - startHT) / periods
+  cccfl <- startCCFL
+  dccfl <- (endCCFL - startCCFL) / periods
+  cbal <- startBAL
+  dbal <- (endBAL - startBAL) / periods
+  max_periods <- max(periods) 
+  
+  # Initialize survival probability vector
+  p_survive_total <- rep(1.0, length(periods))
+  
+  for(i in 1:max_periods) 
+  {
+    # Hazard / Probability of surviving this specific interval
+    #p_step <- 1.0 - exp( -exp( -b[1] + b[2]*(ccr^b[5] * cht) + b[3]*log(cccfl+1) + b[4]*log(cbal+1) ))
+    
+    p_step <- ifelse( ccr > 0, 
+                      1.0 - exp( -exp( b[1] + b[2] * exp( b[3]*((ccr+0.01)^b[6])*cht/cdbh + b[4]*(cdbh+1)^b[5] ) ) ),
+                      0 )
+    
+    # Only multiply if the tree is still in its observation period
+    mask <- i <= periods
+    p_survive_total[mask] <- p_survive_total[mask] * p_step[mask]
+    
+    # Update covariates
+    cdbh <- cdbh + ifelse( mask, ddbh, 0.0 )
+    ccr <- ccr + ifelse( mask, dcr, 0.0 )
+    ccch <- ccch + ifelse( mask, dcch, 0.0 )
+    cccfl <- cccfl + ifelse( mask, dccfl, 0.0 )
+    cht <- cht + ifelse( mask, dht, 0.0 )
+    cbal <- cbal + ifelse( mask, dbal, 0.0 )
+  }
+  
+  return( p_survive_total )
+}
+
+
+# Negative Log-Likelihood
+neg_log_lik <- function( b, periods, startDIA, endDIA, startHT, endHT, startCR, endCR, startCCH, endCCH, 
+                                     startCCFL, endCCFL, startBAL, endBAL, status ) 
+{
+  # Initialize survival probability vector
+  p_survive_total <- survival( b, periods, startDIA, endDIA,
+                                           startHT, endHT, 
+                                           startCR, endCR, 
+                                           startCCH, endCCH, 
+                                           startCCFL, endCCFL,
+                                           startBAL, endBAL )
+  
+  # Calculate Likelihood: 
+  # If status=1 (lived), use P. If status=0 (died), use 1-P.
+  likelihood <- ifelse(status == 1, p_survive_total, 1 - p_survive_total)
+  
+  # Return Negative Log-Likelihood (to be minimized)
+  # We add a small epsilon (1e-10) to avoid log(0)
+  return(-sum(log(likelihood + 1e-10)))
+}
+
+mort_fit <- optim(
+  par = c( 1.64666578, -2.09447372, -0.48106707, -0.04435497,  1.2,  1.16374269 ), 
+  fn = neg_log_lik, 
+  periods = tree_subset$endGROWYR - tree_subset$startGROWYR,
+  startDIA = tree_subset$startDIA,
+  endDIA = tree_subset$endDIA,
+  startHT = tree_subset$startHT,
+  endHT = tree_subset$endHT,
+  startCR = tree_subset$startCR,
+  endCR = tree_subset$endCR,
+  startCCH = tree_subset$startCCH,
+  endCCH = tree_subset$endCCH,
+  startCCFL = tree_subset$startCCFL,
+  endCCFL = tree_subset$endCCFL,
+  startBAL = tree_subset$startBAL,
+  endBAL = tree_subset$endBAL,
+  status = !tree_subset$died
+)
+
+```
+
+```{r}
+#| label: parameter_estimates
+#| echo: false
+#| message: false
+#| warning: false
+
+x <- as.data.frame( mort_fit$par )
+rownames( x ) <- paste0( "B", c(1:6))
+names( x ) <- "Parameter"
+knitr::kable( x )
+```
+
+
+```{r}
+#| label: residual_analysis
+#| echo: false
+#| message: false
+#| warning: false
+
+# compute residuals
+
+tree_subset$survival_hat <- survival( mort_fit$par, 
+                          periods = tree_subset$endGROWYR - tree_subset$startGROWYR, 
+                          startDIA = tree_subset$startDIA,
+                          endDIA = tree_subset$endDIA,
+                          startHT = tree_subset$startHT,
+                          endHT = tree_subset$endHT,
+                          startCR = tree_subset$startCR,
+                          endCR = tree_subset$endCR,
+                          startCCH = tree_subset$startCCH,
+                          endCCH = tree_subset$endCCH,
+                          startCCFL = tree_subset$startCCFL,
+                          endCCFL = tree_subset$endCCFL,
+                          startBAL = tree_subset$startBAL,
+                          endBAL = tree_subset$endBAL )
+tree_subset$mort_res <- (1.0 - tree_subset$survival_hat) - tree_subset$died 
+
+tree_subset |> mutate( dbh_class = as.integer(startDIA + 0.5) ) |>
+  group_by( dbh_class ) |>
+  summarize( mean_res = mean( mort_res ) ) |>
+  ggplot( aes( dbh_class, mean_res ) ) +
+  geom_point() +
+  geom_smooth() +
+  geom_abline( intercept = 0, slope = 0 ) +
+  xlab( "DBH (inches)" ) + ylab( "Mortality Residual (pred-act)" ) + 
+  ggtitle( "Mortality Residuals", subtitle=species_name )
+
+tree_subset |> mutate( ht_class = as.integer(startHT/5+0.5)*5 ) |>
+  group_by( ht_class ) |>
+  summarize( mean_res = mean( mort_res ) ) |>
+  ggplot( aes( ht_class, mean_res ) ) +
+  geom_point() +
+  geom_smooth() +
+  geom_abline( intercept = 0, slope = 0 ) +
+  xlab( "Height (feet)" ) + ylab( "Mortality Residual (pred-act)" ) + 
+  ggtitle( "Mortality Residuals", subtitle=species_name )
+
+tree_subset |> mutate( ht_class = as.integer(startHT*startCR/startDIA*10+0.5)/10 ) |>
+  group_by( ht_class ) |>
+  summarize( mean_res = mean( mort_res ) ) |>
+  ggplot( aes( ht_class, mean_res ) ) +
+  geom_point() +
+  geom_smooth() +
+  geom_abline( intercept = 0, slope = 0 ) +
+  xlab( "Crown Length/DBH (feet/inches)" ) + ylab( "Mortality Residual (pred-act)" ) + 
+  ggtitle( "Mortality Residuals", subtitle=species_name )
+
+tree_subset |> mutate( cr_class = as.integer(startCR*30+0.5)/30 ) |>
+  group_by( cr_class ) |>
+  summarize( mean_res = mean( mort_res ) ) |>
+  ggplot( aes( cr_class, mean_res ) ) +
+  geom_point() +
+  geom_smooth() +
+  geom_abline( intercept = 0, slope = 0 ) +
+  xlab( "Crown Ratio (fraction of total height)" ) + ylab( "Mortality Residual (pred-act)" ) + 
+  ggtitle( "Mortality Residuals", subtitle=species_name)
+
+tree_subset |> mutate( bal_class = as.integer(startBAL/10+0.5)*10,) |>
+  group_by( bal_class ) |>
+  summarize( mean_res = mean( mort_res ) ) |>
+  ggplot( aes( bal_class, mean_res ) ) +
+  geom_point() +
+  geom_smooth() +
+  geom_abline( intercept = 0, slope = 0 ) +
+  xlab( "Basal Area in Larger Trees (feet^2/acre)" ) + ylab( "Mortality Residual (pred-act)" ) + 
+  ggtitle( "Mortality Residuals", subtitle=species_name)
+
+tree_subset |> mutate( ccfl_class = as.integer(startCCFL/10+0.5)*10 ) |>
+  group_by( ccfl_class ) |>
+  summarize( mean_res = mean( mort_res ) ) |>
+  ggplot( aes( ccfl_class, mean_res ) ) +
+  geom_point() +
+  geom_smooth() +
+  geom_abline( intercept = 0, slope = 0 ) +
+  xlab( "Crown Competition Factor in Larger Trees (feet^2/acre)" ) + ylab( "Mortality Residual (pred-act)" ) + 
+  ggtitle( "Mortality Residuals", subtitle=species_name)
+
+tree_subset |> mutate( cch_class = as.integer(startCCH*10+0.5)/10 ) |>
+  group_by( cch_class ) |>
+  summarize( mean_res = mean( mort_res ) ) |>
+  ggplot( aes( cch_class, mean_res ) ) +
+  geom_point() +
+  geom_smooth() +
+  geom_abline( intercept = 0, slope = 0 ) +
+  xlab( "Crown Closure at Tree Tip (fraction of acre)" ) + ylab( "Mortality Residual (pred-act)" ) + 
+  ggtitle( "Mortality Residuals", subtitle=species_name)
+
+tree_subset |> mutate( emt_class = as.integer(EMT*10+0.5)/10 ) |>
+  group_by( emt_class ) |>
+  summarize( mean_res = mean( mort_res ) ) |>
+  ggplot( aes( emt_class, mean_res ) ) +
+  geom_point() +
+  geom_smooth() +
+  geom_abline( intercept = 0, slope = 0 ) +
+  xlab( "Extreme Minimum Temperature" ) + ylab( "Mortality Residual (pred-act)" ) + 
+  ggtitle( "Mortality Residuals", subtitle=species_name)
+
+tree_subset |> mutate( elev_class = as.integer(ELEV/10+0.5)*10 ) |>
+  group_by( elev_class ) |>
+  summarize( mean_res = mean( mort_res ) ) |>
+  ggplot( aes( elev_class, mean_res ) ) +
+  geom_point() +
+  geom_smooth() +
+  geom_abline( intercept = 0, slope = 0 ) +
+  xlab( "Elevation (feet)" ) + ylab( "Mortality Residual (pred-act)" ) + 
+  ggtitle( "Mortality Residuals", subtitle=species_name)
+
+tree_subset |> mutate( pptsm_class = as.integer(PPT_sm*10+0.5)/10 ) |>
+  group_by( pptsm_class ) |>
+  summarize( mean_res = mean( mort_res ) ) |>
+  ggplot( aes( pptsm_class, mean_res ) ) +
+  geom_point() +
+  geom_smooth() +
+  geom_abline( intercept = 0, slope = 0 ) +
+  xlab( "Summer Precipitation" ) + ylab( "Mortality Residual (pred-act)" ) + 
+  ggtitle( "Mortality Residuals", subtitle=species_name)
+
+tree_subset |> mutate( si_class = as.integer(SICOND*10+0.5)/10 ) |>
+  group_by( si_class ) |>
+  summarize( mean_res = mean( mort_res ) ) |>
+  ggplot( aes( si_class, mean_res ) ) +
+  geom_point() +
+  geom_smooth() +
+  geom_abline( intercept = 0, slope = 0 ) +
+  xlab( "Site Index" ) + ylab( "Mortality Residual (pred-act)" ) + 
+  ggtitle( "Mortality Residuals", subtitle=species_name)
+
+
+x <- tree_subset |> 
+  mutate( res=mort_res ) |> 
+  group_by( STATECD, UNITCD, COUNTYCD, X, Y ) |> 
+  summarize( mean_res=mean( res ), X=mean(X), Y=mean(Y) )
+
+x %>% ggplot( aes( X, Y, color=Hmisc::cut2(mean_res,c(-0.05,0.05) )) ) + 
+                  geom_point() + 
+                  viridis::scale_color_viridis(discrete = T, option="magma") +
+                  labs( color="Mean Mortality Residual", x="", y="") +
+                  ggtitle( "State - Unit - County Mean Mortality Residuals" )
+
+
+```
+
