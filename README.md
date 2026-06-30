@@ -9,26 +9,54 @@ Maintainers:
   
 This repo holds scripts and supporting files to re-model Forest Vegetation Simulator (`FVS`) component growth and imputation models for CONUS.
 
-Some early priorities and project status are:
+Our objective is to grow any tree list from plots in CONUS in a single, variant-free model.
 
-1. Establish a uniform site productivity measure for CONUS (perhaps similar to `Climate SI`, Embedded Climate data[^1], or Asymptotic Above Ground Biomass).
-2. Develop a robust system for establishing the age of a plot (or perhaps a tree).
-3. Develop growth equations capable of unbiased estimate across all species.
-   * A draft diameter growth equation (not using site index) has been developed for all species across CONUS with sufficient data ($\ge$ 5000 observations). There is good reduction in spatial residual variation. Draft results are [here](https://github.com/gregjohnsonbiometrics/fvs_remodeling/blob/main/pdfs/diameter_growth_equations_for_conus.pdf).
-      * We are still working on refining the environmental effects (embedded climate variables).
-      * There is still some spatial residual variation yet to address.
-   * A draft height growth equation has been developed (not using site index) has been developed for all species across CONUS with sufficient data ($\ge$ 5000 observations). There is good reduction in spatial residual variation. Draft results are [here](https://github.com/gregjohnsonbiometrics/fvs_remodeling/blob/main/pdfs/Height_Growth_Equations_for_CONUS.pdf).
-      * Some parameters have biologically unreasonable signs (e.g., negative when positive is expected).
-      * The crown ratio parameter is not significantly different from 0.0 for most species. We need to explore the ramifications of this.
-      * We are still working on refining the environmental effects (embedded climate variables).
-      * There is still some spatial residual variation yet to address.
+## Our principles:
+- Use parsimonious, biologically consistent model forms for all species,
+- Reduce or eliminate site index as a productivity measure, and
+- Require no calibration when verified against FIA data.
+
+A [presentation](./pdfs/GJohnsonWMens2026-v2.pdf) delivered to the Western Mensurationists on June 23, 2026 summarizes our work to date.
+
+## Progress 
+### We have preliminary equations developed for:
+- [Diameter Growth](./scripts/diameter_growth/)
+- [Height Growth](./scripts/height_growth/)
+- [Mortality](./scripts/mortality/)
+
+### and we have in development equations for:
+- [Change in Crown Length](./scripts/crown_change/)
+- [Height imputation](./scripts/height-diameter/)
+- [Maximum Crown Width](./scripts/mcw/)
+
+### Work has not begun or is continuing on:
+- Crown dimensions imputation
+- Species mapping for species with low sample sizes
+- Improvement in site (location) effects
+- Refine height growth equation for consistency across species.
+- Explore parameter clustering techniques (perhaps at the genus level) for species mapping.
+- Build (or rebuild) imputation equations for: 
+   - Δℎ𝑡𝑙𝑐
+   - ℎ𝑡
+   - ℎ𝑡𝑙𝑐
+   - 𝑑𝑏ℎ???
+   - 𝑙𝑐𝑤 (largest crown width)
+   - Build a testing simulation framework and a growth verification system to evaluate bias and precision
       
 
-Contacts: 
+## Documentation
+
+Documentation of equation fitting and model testing can be found [here](./pdfs)
+
+## Related Projects
+
+- [fvs-conus](https://github.com/advanced-forestry-systems/fvs-conus-components)
+
+- [fvs-modern](https://github.com/advanced-forestry-systems/fvs-modern)
+
+## ontacts: 
 
 * greg@nosnhoj.org
 * davidkathymarshall@comcast.net
 * aaron.weiskittel@maine.edu
-
-[^1]: [Introduction to the Satellite Embedding Dataset.](developers.google.com/earth-engine/tutorials/community/satellite-embedding-01-introduction)
 

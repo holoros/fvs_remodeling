@@ -43,8 +43,8 @@ min_obs <- 5000
 
 tree_subset <- trees |> mutate( dcr = (endCR - startCR),
                                 dcl = (endCR*endHT - startCR*startHT),
+                                dhtlc = (endHTLC - startHTLC),
                                 periods = endGROWYR - startGROWYR )
-               
 
 ```
 
@@ -77,70 +77,78 @@ The following graphs show the trends of crown change over potential explanatory 
 #| warning: false
 
 tree_subset |> 
-  ggplot( aes( startDIA, dcl/n, color=ifelse(SPCD < 300, "Conifer","Hardwood") ) ) +
+  ggplot( aes( startDIA, dcl/periods, color=ifelse(SPCD < 300, "Conifer","Hardwood") ) ) +
   geom_smooth() +
   geom_abline( intercept = 0, slope = 0 ) +
   labs( color="" ) +
   xlab( "DBH (inches)" ) + ylab( "Crown Length Change (feet/year)" ) 
 
 tree_subset |> 
-  ggplot( aes( startHT, dcl/n, color=ifelse(SPCD < 300, "Conifer","Hardwood") ) ) +
+  ggplot( aes( startHT, dcl/periods, color=ifelse(SPCD < 300, "Conifer","Hardwood") ) ) +
   geom_smooth() +
   geom_abline( intercept = 0, slope = 0 ) +
   labs( color="" ) +
   xlab( "Height (feet)" ) + ylab( "Crown Length Change (feet/year)" ) 
 
 tree_subset |> 
-  ggplot( aes( startCR, dcl/n, color=ifelse(SPCD < 300, "Conifer","Hardwood") ) ) +
+  ggplot( aes( (endHT-startHT)/periods, dcl/periods, color=ifelse(SPCD < 300, "Conifer","Hardwood") ) ) +
+  geom_smooth() +
+  geom_abline( intercept = 0, slope = 0 ) +
+  labs( color="" ) +
+  xlab( "Height Growth (feet/year)" ) + ylab( "Crown Length Change (feet/year)" ) 
+
+
+tree_subset |> 
+  ggplot( aes( startCR, dcl/periods, color=ifelse(SPCD < 300, "Conifer","Hardwood") ) ) +
   geom_smooth() +
   geom_abline( intercept = 0, slope = 0 ) +
   labs( color="" ) +
   xlab( "Crown Ratio (fraction of total height)" ) + ylab( "Crown Length Change (feet/year)" ) 
 
 tree_subset |> 
-  ggplot( aes( startBAL, dcl/n, color=ifelse(SPCD < 300, "Conifer","Hardwood") ) ) +
+  ggplot( aes( startBAL, dcl/periods, color=ifelse(SPCD < 300, "Conifer","Hardwood") ) ) +
   geom_smooth() +
   geom_abline( intercept = 0, slope = 0 ) +
   labs( color="" ) +
   xlab( "Basal Area in Larger Trees (feet^2/acre)" ) + ylab( "Crown Length Change (feet/year)" ) 
 
 tree_subset |> 
-  ggplot( aes( startCCFL, dcl/n, color=ifelse(SPCD < 300, "Conifer","Hardwood") ) ) +
+  ggplot( aes( startCCFL, dcl/periods, color=ifelse(SPCD < 300, "Conifer","Hardwood") ) ) +
   geom_smooth() +
   geom_abline( intercept = 0, slope = 0 ) +
   labs( color="" ) +
   xlab( "Crown Competition Factor in Larger Trees (feet^2)" ) + ylab( "Crown Length Change (feet/year)" ) 
 
 tree_subset |> 
-  ggplot( aes( startCCH, dcl/n, color=ifelse(SPCD < 300, "Conifer","Hardwood") ) ) +
+  ggplot( aes( startCCH, dcl/periods, color=ifelse(SPCD < 300, "Conifer","Hardwood") ) ) +
   geom_smooth() +
   geom_abline( intercept = 0, slope = 0 ) +
   labs( color="" ) +
   xlab( "Crown Closure at Tree Tip (fraction of acre)" ) + ylab( "Crown Length Change (feet/year)" ) 
 
 tree_subset |> 
-  ggplot( aes( EMT, dcl/n, color=ifelse(SPCD < 300, "Conifer","Hardwood") ) ) +
+  ggplot( aes( EMT, dcl/periods, color=ifelse(SPCD < 300, "Conifer","Hardwood") ) ) +
   geom_smooth() +
   geom_abline( intercept = 0, slope = 0 ) +
   labs( color="" ) +
   xlab( "Extreme Minimum Temperature (degrees C)" ) + ylab( "Crown Length Change (feet/year)" ) 
 
 tree_subset |> 
-  ggplot( aes( ELEV, dcl/n, color=ifelse(SPCD < 300, "Conifer","Hardwood") ) ) +
+  ggplot( aes( ELEV, dcl/periods, color=ifelse(SPCD < 300, "Conifer","Hardwood") ) ) +
   geom_smooth() +
   geom_abline( intercept = 0, slope = 0 ) +
   labs( color="" ) +
   xlab( "Elevation (feet)" ) + ylab( "Crown Length Change (feet/year)" ) 
 
 tree_subset |> 
-  ggplot( aes( SICOND, dcl/n, color=ifelse(SPCD < 300, "Conifer","Hardwood") ) ) +
+  ggplot( aes( SICOND, dcl/periods, color=ifelse(SPCD < 300, "Conifer","Hardwood") ) ) +
   geom_smooth() +
   geom_abline( intercept = 0, slope = 0 ) +
   labs( color="" ) +
   xlab( "Site Index (feet)" ) + ylab( "Crown Length Change (feet/year)" ) 
 
 tree_subset |> 
-  ggplot( aes( PPT_sm, dcl/n, color=ifelse(SPCD < 300, "Conifer","Hardwood") ) ) +
+  ggplot( aes( PPT_sm, dcl/periods, color=ifelse(SPCD < 300, "Conifer","Hardwood") ) ) +
   geom_smooth() +
   geom_abline( intercept = 0, slope = 0 ) +
   labs( color="" ) +
@@ -148,7 +156,7 @@ tree_subset |>
 
 
 tree_subset |> 
-  ggplot( aes( as.factor(startOWNCD), dcl/n, color=ifelse(SPCD < 300, "Conifer","Hardwood") ) ) +
+  ggplot( aes( as.factor(startOWNCD), dcl/periods, color=ifelse(SPCD < 300, "Conifer","Hardwood") ) ) +
   geom_boxplot( varwidth = T, notch = T ) +
   ylim( c(-0.1, 0.1) ) +
   geom_abline( intercept = 0, slope = 0 ) +
@@ -157,29 +165,36 @@ tree_subset |>
 
 ```
 
-## Proposed Model
 
-The model we propose to explain more of the mortality variation over the base rate is a Gompit function:
 
-$$ P_{surv} = 1 - e^{(-e^{(\beta_0 + \beta_1 (cr+0.01)^{\beta_2} + \beta_3 cch^{\beta_4} )})}$$ {#eq-surv}
+## Base Rate Model
+
+The model we propose to estimate change in crown length is:
+
+$$ \Delta CL = \Delta HT - \beta_0 $$ {#eq-dcl}
 
 where:
 
-- $P_{surv}$ : probability of survival
-- $cr$ : crown ratio
-- $cch$ : crown closure at tree tip
+- $\Delta CL$ : change in crown length (feet)
+- $\Delta HT$ : height growth (feet)
 
-We used an integrative fitting approach to account for varying period lengths and we minimized the negative log-likelihood for each species separately.
+We used an integrative fitting approach to account for varying period lengths.
 
 ```{r}
-#| label: mortality_base_rate_cr_cch
+#| label: base_rate_dcl
 #| echo: false
 #| message: false
 #| warning: false
 
-survival <- function( b, periods, startDIA, endDIA,
-                       startHT, endHT, startCR, endCR, startCCH, endCCH, startCCFL, endCCFL, startBAL, endBAL ) 
+est_cl <- function( b0, periods,
+                    startDIA, endDIA,
+                    startHT, endHT, 
+                    startCR, endCR, 
+                    startCCH, endCCH, 
+                    startCCFL, endCCFL, 
+                    startBAL, endBAL ) 
 {
+  ccl <- startCR * startHT
   cdbh <- startDIA
   ddbh <- (endDIA - startDIA) / periods
   ccr <- startCR
@@ -194,19 +209,13 @@ survival <- function( b, periods, startDIA, endDIA,
   dbal <- (endBAL - startBAL) / periods
   max_periods <- max(periods) 
   
-  # Initialize survival probability vector
-  p_survive_total <- rep(1.0, length(periods))
-  
   for(i in 1:max_periods) 
   {
-    # Hazard / Probability of surviving this specific interval
-    p_step <- ifelse( ccr > 0, 
-                      1.0 - exp( -exp( b[1] + b[2]*(ccr+0.01)^b[3] + b[4]*ccch^b[5] ) ),
-                      0 )
+    dcl_est <- dht * b0
     
     # Only multiply if the tree is still in its observation period
     mask <- i <= periods
-    p_survive_total[mask] <- p_survive_total[mask] * p_step[mask]
+    ccl <- ccl + ifelse( mask, dcl_est, 0.0 )
     
     # Update covariates
     cdbh <- cdbh + ifelse( mask, ddbh, 0.0 )
@@ -217,20 +226,19 @@ survival <- function( b, periods, startDIA, endDIA,
     cbal <- cbal + ifelse( mask, dbal, 0.0 )
   }
   
-  return( p_survive_total )
+  return( ccl )
 }
 
 ```
 
 ```{r}
-#| label: fit_species3
+#| label: fit_dcl
 #| eval: false
 #| message: false
 #| warning: false
 #| include: false
 
-parms3 <- NULL
-parms3a <- NULL
+parms <- NULL
 
 # 1. Pre-split the massive dataset by the grouping variable
 tree_split <- tree_subset %>% group_split(SPCD)
@@ -247,326 +255,509 @@ registerDoFuture()
 plan(multisession) # Uses background R sessions (works on Windows, Mac, and Linux)
 
 # 2. Run the parallel loop
-i <- 1
-while( i <= nrow(parms) )
-{
-  results <- future_lapply( c(i:min(i+5,nrow(parms))), function(j) 
-  {  
-    print( j )
-    # Initialize empty outputs for iterations that don't meet the 'if' criteria
-    parms_out <- NULL
-  
-    if( parms$n[j] >= min_obs ) 
-    {
-      p <- parms[j,]
 
-      sp_id <- as.character( p$SPCD )
-      d <- tree_split[[sp_id]]
+results <- lapply( c(1:nrow(species)), function( j ) 
+{  
+  print( j )
+  # Initialize empty outputs for iterations that don't meet the 'if' criteria
+  parms_out <- NULL
+
+  sp_id <- as.character( species$SPCD[j] )
+  if( sp_id %in% names(tree_split) ) 
+  {
+    d <- tree_split[[sp_id]]
       
-      if( nrow(d) >= min_obs ) 
-      {
-        mort_fit <- optim(
-          par = c( p$b0, -0.02895643, -1.2522242, -0.5365716, 0.3688843), 
-          fn = neg_log_lik,
-          method = "BFGS",
-          periods = d$endGROWYR - d$startGROWYR,
-          startDIA = d$startDIA, endDIA = d$endDIA,
-          startHT = d$startHT,   endHT = d$endHT,
-          startCR = d$startCR,   endCR = d$endCR,
-          startCCH = d$startCCH, endCCH = d$endCCH,
-          startCCFL = d$startCCFL, endCCFL = d$endCCFL,
-          startBAL = d$startBAL, endBAL = d$endBAL,
-          status = !d$died
-        ) 
-        
-        parms_out <- data.frame(
-          SPCD = p$SPCD, 
-          CommonName = p$CommonName,
-          n = nrow(d), 
-          b0 = mort_fit$par[1],
-          b1 = mort_fit$par[2],
-          b2 = mort_fit$par[3],
-          b3 = mort_fit$par[4],
-          b4 = mort_fit$par[5],
-          nll = mort_fit$value
-        )
-      }
+    if( nrow(d) >= min_obs ) 
+    {
+      cl_fit <- minpack.lm::nlsLM( endCR*endHT ~ est_cl( b0, periods, 
+                                                          startDIA, endDIA,
+                                                          startHT, endHT,
+                                                          startCR, endCR,
+                                                          startCCH, endCCH,
+                                                          startCCFL, endCCFL,
+                                                          startBAL, endBAL ), 
+                                   d,
+                                   start=c( b0 = 0.01 ) ) 
+      
+      p <- cl_fit$m$getPars()
+      parms_out <- data.frame(
+        SPCD = species$SPCD[j],
+        CommonName = species$CommonName[j],
+        n = nrow(d), 
+        b0 = p[1],
+        rmse = sqrt(mean(residuals(cl_fit)^2))
+      )
     }
-    
-    # Return both objects as a named list for this iteration
-    list(parms = parms_out ) 
-  }, future.seed = TRUE)
-
-  # 3. Clean up and combine the list of results into the final dataframes
-  parms3a <- bind_rows( parms3a, lapply( results, `[[`, "parms" ) )
+  }
   
-  i <- i + 6
-}
+  return( list( parms = parms_out ) )
 
-parms3 <- rbind( parms3, parms3a )
+} )
+
+parms <- bind_rows( parms, lapply( results, `[[`, "parms" ) )
+
 
 # 4. Close background workers
-plan(sequential)
+#plan(sequential)
   
-saveRDS( parms3, file=paste0( rds_path, "mort_parm_base_rate_cr_cch2.RDS") )
+saveRDS( parms, file=paste0( rds_path, "delta_crown_length_base_rate.RDS") )
 
 
 ```
 
 ```{r}
-#| label: get_3rd_estimates
+#| label: get_base_rate_estimates
 #| echo: false
 #| message: false
 #| warning: false
 
-parms3<- readRDS( paste0( rds_path, "mort_parm_base_rate_cr_cch2.RDS") )
+parms <- readRDS( paste0( rds_path, "delta_crown_length_base_rate.RDS") )
 
-residuals3 <- NULL
+residuals <- NULL
 results <- list()
-for( i in 1:nrow(parms3) )
+for( i in 1:nrow(parms) )
 {
-  d <- tree_subset |> filter( SPCD == parms3$SPCD[i] )
-  d$survival_hat <- survival( c(parms3$b0[i], parms3$b1[i], parms3$b2[i], parms3$b3[i], parms3$b4[i]), 
-                                  periods  = d$endGROWYR - d$startGROWYR,
-                                  startDIA = d$startDIA,
-                                  endDIA   = d$endDIA,
-                                  startHT  = d$startHT,
-                                  endHT    = d$endHT,
-                                  startCR  = d$startCR,
-                                  endCR    = d$endCR,
-                                  startCCH = d$startCCH,
-                                  endCCH   = d$endCCH,
-                                  startCCFL = d$startCCFL,
-                                  endCCFL  = d$endCCFL,
-                                  startBAL = d$startBAL,
-                                  endBAL   = d$endBAL ) 
-    d$mortality_res <- ((1-d$survival_hat) - d$died)/(d$endGROWYR - d$startGROWYR)
+  sp_id <- as.character( parms$SPCD[i] )
+  d <- tree_split[[sp_id]]
+  d$cl_hat <- est_cl( parms$b0[i], 
+                        periods  = d$periods,
+                        startDIA = d$startDIA,
+                        endDIA   = d$endDIA,
+                        startHT  = d$startHT,
+                        endHT    = d$endHT,
+                        startCR  = d$startCR,
+                        endCR    = d$endCR,
+                        startCCH = d$startCCH,
+                        endCCH   = d$endCCH,
+                        startCCFL = d$startCCFL,
+                        endCCFL  = d$endCCFL,
+                        startBAL = d$startBAL,
+                        endBAL   = d$endBAL ) 
+    d$cl_res <- (d$cl_hat - d$endCR*d$endHT)/d$periods
     results[[i]] <- d 
 }
 
-residuals3 <- bind_rows( results )
+residuals <- bind_rows( results )
 
 ```
 
-We were able to make parameter estimates for `r nrow(parms3)` species. The distributions of the estimates for these species are shown below.
+We were able to make base rate estimates for `r nrow(parms)` species. The distributions of the estimates for these species are shown below.
 
 ```{r}
-#| label: 3rd_estimates
+#| label: br_estimates
 #| echo: false
 #| message: false
 #| warning: false
 
 
-parms3 |> filter( n >= min_obs ) |> ggplot( aes( b0 ) ) + geom_histogram() +
+parms |> filter( n >= min_obs ) |> ggplot( aes( b0 ) ) + geom_histogram() +
  xlab( "B0") +
   facet_wrap( ~ifelse(SPCD < 300, "Conifer","Hardwood")) +
   ggtitle( "All Species")
 
-parms3 |> filter( n >= min_obs ) |> ggplot( aes( b1 ) ) + geom_histogram() +
-  xlab( "B1") +
-  facet_wrap( ~ifelse(SPCD < 300, "Conifer","Hardwood")) +
-  ggtitle( "All Species")
-
-parms3 |> filter( n >= min_obs ) |> ggplot( aes( b2 ) ) + geom_histogram() +
-  xlab( "B2") +
-  facet_wrap( ~ifelse(SPCD < 300, "Conifer","Hardwood")) +
-  ggtitle( "All Species")
-
-parms3 |> filter( n >= min_obs ) |> ggplot( aes( b3 ) ) + geom_histogram() +
-  xlab( "B3") +
-  facet_wrap( ~ifelse(SPCD < 300, "Conifer","Hardwood")) +
-  ggtitle( "All Species")
-
-parms3 |> filter( n >= min_obs ) |> ggplot( aes( b4 ) ) + geom_histogram() +
-  xlab( "B4") +
-  facet_wrap( ~ifelse(SPCD < 300, "Conifer","Hardwood")) +
-  ggtitle( "All Species")
-
 ```
 
-There are `r nrow( parms3 |> filter( b0 < 0 ) )` species with parameter estimates that diverge significantly from the rest of the species. These species are listed in @tbl-suspicious.
-
-```{r}
-#| label: tbl-suspicious
-#| echo: false
-#| message: false
-#| warning: false
-
-knitr::kable( parms3 |> filter( b0 < 0 ) |> select( SPCD, CommonName, n ), col.names = c("FIA SPCD", "Common Name", "N Obs."),
-              caption="Species with Extreme Parameter Estimates")
-  
-```
-
-@fig-nll shows that all species' negative log likelihoods were reduced over the base rate with the proposed model.
-
-```{r}
-#| label: fig-nll
-#| echo: false
-#| message: false
-#| warning: false
-
-parms3 |> filter( n >= min_obs ) |>
-  inner_join( parms, by="SPCD", suffix=c("",".br")) |> 
-  ggplot( aes( nll.br, nll ) ) + geom_point() +
-  geom_abline( intercept = 0, slope=1 ) +
-  ylab( "Negative Log Likelihood Revised Model") +
-  xlab( "Negative Log Likelihood Base Rate") +
-  ggtitle( "All Species")
-
-```
 
 \pagebreak
 
-## Proposed Model Residuals
+## Base Rate Residuals
 
-The following residual graphs show the average errors for all species where the fit improved over the base rate over classes of possible explanatory variables.
+The following residual graphs show the average errors for all species using the base rate.
 
 ```{r}
-#| label: residual_analysis3
+#| label: base_rate_analysis
 #| echo: false
 #| message: false
 #| warning: false
 
-residuals3 |> mutate( dbh_class = as.integer(startDIA + 0.5) ) |>
-  group_by( dbh_class ) |>
-  summarize( mean_res = mean( mortality_res ) ) |>
-  ggplot( aes( dbh_class, mean_res ) ) +
-  geom_point() +
+
+residuals |> 
+  ggplot( aes( startDIA, cl_res, color=ifelse(SPCD < 300, "Conifer","Hardwood") ) ) +
   geom_smooth() +
-  ylim( c(-0.03, 0.03) ) +
   geom_abline( intercept = 0, slope = 0 ) +
-  xlab( "DBH (inches)" ) + ylab( "Mortality Residual (pred-act)" ) + 
-  ggtitle( "Mortality Residuals", subtitle = "Revised Model (outliers removed)" )
+  labs( color="" ) +
+  xlab( "DBH (inches)" ) + ylab( "Crown Length Change Residual (feet/year) (pred-act) (feet/year)" ) 
 
-residuals3 |> mutate( ht_class = as.integer(startHT/5+0.5)*5 ) |>
-  group_by( ht_class ) |>
-  summarize( mean_res = mean( mortality_res ) ) |>
-  ggplot( aes( ht_class, mean_res ) ) +
-  geom_point() +
+residuals |> 
+  ggplot( aes( startHT, cl_res, color=ifelse(SPCD < 300, "Conifer","Hardwood") ) ) +
   geom_smooth() +
-  ylim( c(-0.03, 0.03) ) +
   geom_abline( intercept = 0, slope = 0 ) +
-  xlab( "Height (feet)" ) + ylab( "Mortality Residual (pred-act)" ) + 
-  ggtitle( "Mortality Residuals", subtitle = "Revised Model (outliers removed)" )
+  labs( color="" ) +
+  xlab( "Height (feet)" ) + ylab( "Crown Length Change Residual (feet/year) (pred-act) (feet/year)" ) 
 
-# residuals3 |> mutate( ht_class = as.integer(startHT*startCR/startDIA*10+0.5)/10 ) |>
-#   group_by( ht_class ) |>
-#   summarize( mean_res = mean( mortality_res ) ) |>
-#   ggplot( aes( ht_class, mean_res ) ) +
-#   geom_point() +
-#   geom_smooth() +
-#   ylim( c(-0.03, 0.03) ) +
-#   geom_abline( intercept = 0, slope = 0 ) +
-#   xlab( "Crown Length/DBH (feet/inches)" ) + ylab( "Mortality Residual (pred-act)" ) + 
-#   ggtitle( "Mortality Residuals", subtitle = "Revised Model (outliers removed)" )
-
-residuals3 |> mutate( cr_class = as.integer(startCR*30+0.5)/30 ) |>
-  group_by( cr_class ) |>
-  summarize( mean_res = mean( mortality_res ) ) |>
-  ggplot( aes( cr_class, mean_res ) ) +
-  geom_point() +
+residuals |> 
+  ggplot( aes( startCR, cl_res, color=ifelse(SPCD < 300, "Conifer","Hardwood") ) ) +
+  #geom_point() +
   geom_smooth() +
-  ylim( c(-0.03, 0.03) ) +
   geom_abline( intercept = 0, slope = 0 ) +
-  xlab( "Crown Ratio (fraction of total height)" ) + ylab( "Mortality Residual (pred-act)" ) + 
-  ggtitle( "Mortality Residuals", subtitle = "Revised Model (outliers removed)" )
+  labs( color="" ) +
+  xlab( "Crown Ratio (fraction of total height)" ) + ylab( "Crown Length Change Residual (feet/year) (pred-act) (feet/year)" )
 
-residuals3 |> mutate( bal_class = as.integer(startBAL/10+0.5)*10,) |>
-  group_by( bal_class ) |>
-  summarize( mean_res = mean( mortality_res ) ) |>
-  ggplot( aes( bal_class, mean_res ) ) +
-  geom_point() +
+residuals |> 
+  ggplot( aes( startBAL, cl_res, color=ifelse(SPCD < 300, "Conifer","Hardwood") ) ) +
   geom_smooth() +
-  ylim( c(-0.03, 0.03) ) +
   geom_abline( intercept = 0, slope = 0 ) +
-  xlab( "Basal Area in Larger Trees (feet^2/acre)" ) + ylab( "Mortality Residual (pred-act)" ) + 
-  ggtitle( "Mortality Residuals", subtitle = "Revised Model (outliers removed)" )
+  labs( color="" ) +
+  xlab( "Basal Area in Larger Trees (feet^2/acre)" ) + ylab( "Crown Length Change Residual (feet/year) (pred-act) (feet/year)" ) 
 
-residuals3 |> mutate( ccfl_class = as.integer(startCCFL/10+0.5)*10 ) |>
-  group_by( ccfl_class ) |>
-  summarize( mean_res = mean( mortality_res ) ) |>
-  ggplot( aes( ccfl_class, mean_res ) ) +
-  geom_point() +
+residuals |> 
+  ggplot( aes( startCCFL, cl_res, color=ifelse(SPCD < 300, "Conifer","Hardwood") ) ) +
   geom_smooth() +
-  ylim( c(-0.03, 0.03) ) +
   geom_abline( intercept = 0, slope = 0 ) +
-  xlab( "Crown Competition Factor in Larger Trees (feet^2/acre)" ) + ylab( "Mortality Residual (pred-act)" ) + 
-  ggtitle( "Mortality Residuals", subtitle = "Revised Model (outliers removed)" )
+  labs( color="" ) +
+  xlab( "Crown Competition Factor in Larger Trees (feet^2)" ) + ylab( "Crown Length Change Residual (feet/year) (pred-act) (feet/year)" ) 
 
-residuals3 |> mutate( cch_class = as.integer(startCCH*10+0.5)/10 ) |>
-  group_by( cch_class ) |>
-  summarize( mean_res = mean( mortality_res ) ) |>
-  ggplot( aes( cch_class, mean_res ) ) +
-  geom_point() +
+residuals |> 
+  ggplot( aes( startCCH, cl_res, color=ifelse(SPCD < 300, "Conifer","Hardwood") ) ) +
   geom_smooth() +
-  ylim( c(-0.03, 0.03) ) +
   geom_abline( intercept = 0, slope = 0 ) +
-  xlab( "Crown Closure at Tree Tip (fraction of acre)" ) + ylab( "Mortality Residual (pred-act)" ) +
-  ggtitle( "Mortality Residuals", subtitle = "Revised Model (outliers removed)" ) 
+  labs( color="" ) +
+  xlab( "Crown Closure at Tree Tip (fraction of acre)" ) + ylab( "Crown Length Change Residual (feet/year) (pred-act) (feet/year)" ) 
 
-
-residuals3 |> mutate( emt_class = as.integer(EMT*10+0.5)/10 ) |>
-  group_by( emt_class ) |>
-  summarize( mean_res = mean( mortality_res ) ) |>
-  ggplot( aes( emt_class, mean_res ) ) +
-  geom_point() +
+residuals |> 
+  ggplot( aes( EMT, cl_res, color=ifelse(SPCD < 300, "Conifer","Hardwood") ) ) +
   geom_smooth() +
-  ylim( c(-0.03, 0.03) ) +
   geom_abline( intercept = 0, slope = 0 ) +
-  xlab( "Extreme Minimum Temperature" ) + ylab( "Mortality Residual (pred-act)" ) + 
-  ggtitle( "Mortality Residuals", subtitle = "Revised Model (outliers removed)" )
+  labs( color="" ) +
+  xlab( "Extreme Minimum Temperature (degrees C)" ) + ylab( "Crown Length Change Residual (feet/year) (pred-act) (feet/year)" ) 
 
-residuals3 |> mutate( elev_class = as.integer(ELEV/10+0.5)*10 ) |>
-  group_by( elev_class ) |>
-  summarize( mean_res = mean( mortality_res ) ) |>
-  ggplot( aes( elev_class, mean_res ) ) +
-  geom_point() +
+residuals |> 
+  ggplot( aes( ELEV, cl_res, color=ifelse(SPCD < 300, "Conifer","Hardwood") ) ) +
   geom_smooth() +
-  ylim( c(-0.03, 0.03) ) +
   geom_abline( intercept = 0, slope = 0 ) +
-  xlab( "Elevation (feet)" ) + ylab( "Mortality Residual (pred-act)" ) + 
-  ggtitle( "Mortality Residuals", subtitle = "Revised Model (outliers removed)" )
+  labs( color="" ) +
+  xlab( "Elevation (feet)" ) + ylab( "Crown Length Change Residual (feet/year) (pred-act) (feet/year)" ) 
 
-residuals3 |> mutate( pptsm_class = as.integer(PPT_sm*10+0.5)/10 ) |>
-  group_by( pptsm_class ) |>
-  summarize( mean_res = mean( mortality_res ) ) |>
-  ggplot( aes( pptsm_class, mean_res ) ) +
-  geom_point() +
+residuals |> 
+  ggplot( aes( SICOND, cl_res, color=ifelse(SPCD < 300, "Conifer","Hardwood") ) ) +
   geom_smooth() +
-  ylim( c(-0.03, 0.03) ) +
   geom_abline( intercept = 0, slope = 0 ) +
-  xlab( "Summer Precipitation" ) + ylab( "Mortality Residual (pred-act)" ) + 
-  ggtitle( "Mortality Residuals", subtitle = "Revised Model (outliers removed)" )
+  labs( color="" ) +
+  xlab( "Site Index (feet)" ) + ylab( "Crown Length Change Residual (feet/year) (pred-act) (feet/year)" ) 
 
-residuals3 |> mutate( si_class = as.integer(SICOND*10+0.5)/10 ) |>
-  group_by( si_class ) |>
-  summarize( mean_res = mean( mortality_res ) ) |>
-  ggplot( aes( si_class, mean_res ) ) +
-  geom_point() +
+residuals |> 
+  ggplot( aes( PPT_sm, cl_res, color=ifelse(SPCD < 300, "Conifer","Hardwood") ) ) +
   geom_smooth() +
-  ylim( c(-0.03, 0.03) ) +
   geom_abline( intercept = 0, slope = 0 ) +
-  xlab( "Site Index" ) + ylab( "Mortality Residual (pred-act)" ) + 
-  ggtitle( "Mortality Residuals", subtitle = "Revised Model (outliers removed)" )
+  labs( color="" ) +
+  xlab( "Summer Precipitation (mm/year)" ) + ylab( "Crown Length Change Residual (feet/year) (pred-act) (feet/year)" ) 
 
-residuals3 |> 
-  ggplot( aes( as.factor(startOWNCD), mortality_res ) ) +
-  geom_boxplot() +
+
+residuals |> 
+  ggplot( aes( as.factor(startOWNCD), cl_res, color=ifelse(SPCD < 300, "Conifer","Hardwood") ) ) +
+  geom_boxplot( varwidth = T, notch = T ) +
+  ylim( c(-0.1, 0.1) ) +
   geom_abline( intercept = 0, slope = 0 ) +
-  ylim( c(-0.3,0.3) ) +
-  xlab( "Owner Code" ) + ylab( "Mortality Residual (pred-act)" ) + 
-  ggtitle( "Mortality Residuals", subtitle = "Revised Model (outliers removed)" )
+  labs( color="" ) +
+  xlab( "Owner Code" ) + ylab( "Crown Length Change Residual (feet/year) (pred-act) (feet/year)" ) 
 
- x <- residuals3 |> 
-  mutate( res=mortality_res ) |> 
+
+x <- residuals |> 
+  mutate( res=cl_res ) |> 
   group_by( STATECD, UNITCD, COUNTYCD, ) |> 
   summarize( mean_res=mean( res ), X=mean(X), Y=mean(Y) )
 
 x %>% ggplot( aes( X, Y, color=Hmisc::cut2(mean_res,c(-0.03,0.03) )) ) + 
                   geom_point() + 
                   viridis::scale_color_viridis(discrete = T, option="magma") +
-                  labs( color="Mean Mortality Residual", x="", y="") +
-                  ggtitle( "State - Unit - County Mean Mortality Residuals" )
+                  labs( color="Mean Crown Length Change Residual", x="", y="") +
+                  ggtitle( "State - Unit - County Mean Crown Length Change Residuals" )
+
+
+```
+
+
+
+## Improved Model
+
+The improved model we propose to estimate change in crown length is:
+
+$$ \Delta CL = \Delta HT (1 - e^{(\beta_0 + \beta_1 * CL)})$$ {#eq-dcl2}
+
+where:
+
+- $\Delta CL$ : change in crown length (feet)
+- $\Delta HT$ : height growth (feet)
+- $CR$        : crown ratio (fraction of total height)
+
+We used an integrative fitting approach to account for varying period lengths.
+
+```{r}
+#| label: improved_dcl
+#| echo: false
+#| message: false
+#| warning: false
+
+est_cl2 <- function( b0, b1, periods,
+                    startDIA, endDIA,
+                    startHT, endHT, 
+                    startCR, endCR, 
+                    startCCH, endCCH, 
+                    startCCFL, endCCFL, 
+                    startBAL, endBAL ) 
+{
+  ccl <- startCR * startHT
+  cdbh <- startDIA
+  ddbh <- (endDIA - startDIA) / periods
+  ccr <- startCR
+  dcr <- (endCR - startCR) / periods
+  ccch <- startCCH
+  dcch <- (endCCH - startCCH) / periods
+  cht <- startHT
+  dht <- (endHT - startHT) / periods
+  cccfl <- startCCFL
+  dccfl <- (endCCFL - startCCFL) / periods
+  cbal <- startBAL
+  dbal <- (endBAL - startBAL) / periods
+  max_periods <- max(periods) 
+  
+  for(i in 1:max_periods) 
+  {
+    dcl_est <- dht * (1 - exp( b0 + b1 * ccl ))
+    
+    # Only multiply if the tree is still in its observation period
+    mask <- i <= periods
+    ccl <- ccl + ifelse( mask, dcl_est, 0.0 )
+    
+    # Update covariates
+    cdbh  <- cdbh  + ifelse( mask, ddbh, 0.0 )
+    ccr   <- ccr   + ifelse( mask, dcr, 0.0 )
+    ccch  <- ccch  + ifelse( mask, dcch, 0.0 )
+    cccfl <- cccfl + ifelse( mask, dccfl, 0.0 )
+    cht   <- cht   + ifelse( mask, dht, 0.0 )
+    cbal  <- cbal  + ifelse( mask, dbal, 0.0 )
+  }
+  
+  return( ccl )
+}
+
+```
+## Improved Model
+
+```{r}
+#| label: fit_dcl2
+#| eval: false
+#| message: false
+#| warning: false
+#| include: false
+
+parms2 <- NULL
+
+results <- lapply( c(1:nrow(parms)), function(j) 
+{  
+  print( j )
+
+  parms_out <- NULL
+
+  sp_id <- as.character( parms$SPCD[j] )
+  if( sp_id %in% names(tree_split) ) 
+  {
+    d <- tree_split[[sp_id]]
+      
+    if( nrow(d) >= min_obs ) 
+    {
+      cl_fit <- minpack.lm::nlsLM( endCR*endHT ~ est_cl2( b0, b1, periods, 
+                                                          startDIA, endDIA,
+                                                          startHT, endHT,
+                                                          startCR, endCR,
+                                                          startCCH, endCCH,
+                                                          startCCFL, endCCFL,
+                                                          startBAL, endBAL ), 
+                                   d,
+                                   start=c( b0 = -0.55, b1 = 0.002 ) ) 
+      
+      p <- cl_fit$m$getPars()
+      parms_out <- data.frame(
+        SPCD = parms$SPCD[j],
+        CommonName = parms$CommonName[j],
+        n = nrow(d), 
+        b0 = p[1],
+        b1 = p[2],
+        rmse = sqrt(mean(residuals(cl_fit)^2))
+      )
+      
+      list( parms = parms_out ) 
+    }
+  }
+} )
+
+
+parms2 <- bind_rows( parms2, lapply( results, `[[`, "parms" ) )
+
+
+saveRDS( parms2, file=paste0( rds_path, "delta_crown_length_base_rate2.RDS") )
+
+
+```
+
+```{r}
+#| label: get_improved2_estimates
+#| echo: false
+#| message: false
+#| warning: false
+
+parms2 <- readRDS( paste0( rds_path, "delta_crown_length_base_rate2.RDS") )
+
+residuals2 <- NULL
+results <- list()
+for( i in 1:nrow(parms2) )
+{
+  sp_id <- as.character( parms2$SPCD[i] )
+  d <- tree_split[[sp_id]]
+  d$cl_hat <- est_cl2( parms2$b0[i], parms2$b1[i], 
+                        periods  = d$periods,
+                        startDIA = d$startDIA,
+                        endDIA   = d$endDIA,
+                        startHT  = d$startHT,
+                        endHT    = d$endHT,
+                        startCR  = d$startCR,
+                        endCR    = d$endCR,
+                        startCCH = d$startCCH,
+                        endCCH   = d$endCCH,
+                        startCCFL = d$startCCFL,
+                        endCCFL  = d$endCCFL,
+                        startBAL = d$startBAL,
+                        endBAL   = d$endBAL ) 
+    d$cl_res <- (d$cl_hat - d$endCR*d$endHT)/d$periods
+    results[[i]] <- d 
+}
+
+residuals2 <- bind_rows( results )
+
+```
+
+We were able to make improved model estimates for `r nrow(parms2)` species. The distributions of the estimates for these species are shown below.
+
+```{r}
+#| label: br2_estimates
+#| echo: false
+#| message: false
+#| warning: false
+
+
+parms2 |> filter( n >= min_obs ) |> ggplot( aes( b0 ) ) + geom_histogram() +
+ xlab( "B0") +
+  facet_wrap( ~ifelse(SPCD < 300, "Conifer","Hardwood")) +
+  ggtitle( "All Species -- Improved Model")
+
+parms2 |> filter( n >= min_obs ) |> ggplot( aes( b1 ) ) + geom_histogram() +
+ xlab( "B1") +
+  facet_wrap( ~ifelse(SPCD < 300, "Conifer","Hardwood")) +
+  ggtitle( "All Species -- Improved Model")
+
+```
+
+
+\pagebreak
+
+## Improved Model Residuals
+
+The following residual graphs show the average errors for all species using the improved model.
+
+```{r}
+#| label: improved_analysis
+#| echo: false
+#| message: false
+#| warning: false
+
+
+residuals2 |>  
+  ggplot( aes( startDIA, cl_res, color=ifelse(SPCD < 300, "Conifer","Hardwood") ) ) +
+  geom_smooth() +
+  geom_abline( intercept = 0, slope = 0 ) +
+  labs( color="" ) +
+  xlab( "DBH (inches)" ) + ylab( "Crown Length Change Residual (feet/year) (pred-act) (feet/year)" ) 
+
+residuals2 |>  
+  ggplot( aes( startHT, cl_res, color=ifelse(SPCD < 300, "Conifer","Hardwood") ) ) +
+  geom_smooth() +
+  geom_abline( intercept = 0, slope = 0 ) +
+  labs( color="" ) +
+  xlab( "Height (feet)" ) + ylab( "Crown Length Change Residual (feet/year) (pred-act) (feet/year)" ) 
+
+residuals2 |> 
+  ggplot( aes( startCR, cl_res, color=ifelse(SPCD < 300, "Conifer","Hardwood") ) ) +
+  geom_smooth() +
+  geom_abline( intercept = 0, slope = 0 ) +
+  labs( color="" ) +
+  xlab( "Crown Ratio (fraction of total height)" ) + ylab( "Crown Length Change Residual (feet/year) (pred-act) (feet/year)" ) 
+
+residuals2 |> 
+  ggplot( aes( startCR*startHT, cl_res, color=ifelse(SPCD < 300, "Conifer","Hardwood") ) ) +
+  geom_smooth() +
+  geom_abline( intercept = 0, slope = 0 ) +
+  labs( color="" ) +
+  xlab( "Crown Length (feet)" ) + ylab( "Crown Length Change Residual (feet/year) (pred-act) (feet/year)" ) 
+
+residuals2 |>  
+  ggplot( aes( startBAL, cl_res, color=ifelse(SPCD < 300, "Conifer","Hardwood") ) ) +
+  geom_smooth() +
+  geom_abline( intercept = 0, slope = 0 ) +
+  labs( color="" ) +
+  xlab( "Basal Area in Larger Trees (feet^2/acre)" ) + ylab( "Crown Length Change Residual (feet/year) (pred-act) (feet/year)" ) 
+
+residuals2 |>  
+  ggplot( aes( startCCFL, cl_res, color=ifelse(SPCD < 300, "Conifer","Hardwood") ) ) +
+  geom_smooth() +
+  geom_abline( intercept = 0, slope = 0 ) +
+  labs( color="" ) +
+  xlab( "Crown Competition Factor in Larger Trees (feet^2)" ) + ylab( "Crown Length Change Residual (feet/year) (pred-act) (feet/year)" ) 
+
+residuals2 |>  
+  ggplot( aes( startCCH, cl_res, color=ifelse(SPCD < 300, "Conifer","Hardwood") ) ) +
+  geom_smooth() +
+  geom_abline( intercept = 0, slope = 0 ) +
+  labs( color="" ) +
+  xlab( "Crown Closure at Tree Tip (fraction of acre)" ) + ylab( "Crown Length Change Residual (feet/year) (pred-act) (feet/year)" ) 
+
+residuals2 |>  
+  ggplot( aes( EMT, cl_res, color=ifelse(SPCD < 300, "Conifer","Hardwood") ) ) +
+  geom_smooth() +
+  geom_abline( intercept = 0, slope = 0 ) +
+  labs( color="" ) +
+  xlab( "Extreme Minimum Temperature (degrees C)" ) + ylab( "Crown Length Change Residual (feet/year) (pred-act) (feet/year)" ) 
+
+residuals2 |>  
+  ggplot( aes( ELEV, cl_res, color=ifelse(SPCD < 300, "Conifer","Hardwood") ) ) +
+  geom_smooth() +
+  geom_abline( intercept = 0, slope = 0 ) +
+  labs( color="" ) +
+  xlab( "Elevation (feet)" ) + ylab( "Crown Length Change Residual (feet/year) (pred-act) (feet/year)" ) 
+
+residuals2 |>  
+  ggplot( aes( SICOND, cl_res, color=ifelse(SPCD < 300, "Conifer","Hardwood") ) ) +
+  geom_smooth() +
+  geom_abline( intercept = 0, slope = 0 ) +
+  labs( color="" ) +
+  xlab( "Site Index (feet)" ) + ylab( "Crown Length Change Residual (feet/year) (pred-act) (feet/year)" ) 
+
+residuals2 |>  
+  ggplot( aes( PPT_sm, cl_res, color=ifelse(SPCD < 300, "Conifer","Hardwood") ) ) +
+  geom_smooth() +
+  geom_abline( intercept = 0, slope = 0 ) +
+  labs( color="" ) +
+  xlab( "Summer Precipitation (mm/year)" ) + ylab( "Crown Length Change Residual (feet/year) (pred-act) (feet/year)" ) 
+
+
+residuals2 |>  
+  ggplot( aes( as.factor(startOWNCD), cl_res, color=ifelse(SPCD < 300, "Conifer","Hardwood") ) ) +
+  geom_boxplot( varwidth = T, notch = T ) +
+  ylim( c(-0.1, 0.1) ) +
+  geom_abline( intercept = 0, slope = 0 ) +
+  labs( color="" ) +
+  xlab( "Owner Code" ) + ylab( "Crown Length Change Residual (feet/year) (pred-act) (feet/year)" ) 
+
+
+x <- residuals2 |>  
+  mutate( res=cl_res ) |> 
+  group_by( STATECD, UNITCD, COUNTYCD, ) |> 
+  summarize( mean_res=mean( res ), X=mean(X), Y=mean(Y) )
+
+x %>% ggplot( aes( X, Y, color=Hmisc::cut2(mean_res,c(-0.03,0.03) )) ) + 
+                  geom_point() + 
+                  viridis::scale_color_viridis(discrete = T, option="magma") +
+                  labs( color="Mean Crown Length Change Residual", x="", y="") +
+                  ggtitle( "State - Unit - County Mean Crown Length Change Residuals" )
 
 
 ```

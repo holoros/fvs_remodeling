@@ -43,7 +43,7 @@ tree_cr_change_subset <- tree_data |>
             !is.na(startBAL) &!is.na(endBAL) & 
             !is.na(startCR) & !is.na(endCR) &
             !is.na(startCCFL) & !is.na(endCCFL) &
-            !is.na(startCR) & !is.na(endCR) &
+            !is.na(startHTLC) & !is.na(endHTLC) &
             startBAPA > 0 & startHT40 > 0 &
             !is.na(startGROWYR) & !is.na(endGROWYR) & endGROWYR - startGROWYR >= 5 &
             !is.na( SICOND ) ) |>
